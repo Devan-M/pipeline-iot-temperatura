@@ -1,0 +1,323 @@
+# 🌡️ Pipeline IoT de Temperatura
+
+Pipeline de dados em Python que importa, valida, trata e armazena leituras de temperatura em um banco **PostgreSQL**. O projeto também oferece um **dashboard interativo** para explorar os dados processados.
+
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Docker-4169E1?logo=postgresql&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)
+
+---
+
+## 📑 Sumário
+
+- [Objetivos](#-objetivos)
+- [Tecnologias utilizadas](#-tecnologias-utilizadas)
+- [Arquitetura do projeto](#-arquitetura-do-projeto)
+- [Estrutura de diretórios](#-estrutura-de-diretórios)
+- [Pré-requisitos](#-pré-requisitos)
+- [Configuração do ambiente](#-configuração-do-ambiente)
+- [Execução do projeto](#-execução-do-projeto)
+- [Consultas analíticas](#-consultas-analíticas)
+- [Validação dos dados](#-validação-dos-dados)
+- [Encerramento do ambiente](#-encerramento-do-ambiente)
+- [Segurança](#-segurança)
+- [Licença](#-licença)
+
+---
+
+## 🎯 Objetivos
+
+- Processar dados de sensores de temperatura a partir de um arquivo CSV.
+- Validar e padronizar os registros antes da carga.
+- Remover registros duplicados durante o processamento.
+- Armazenar os dados em um banco PostgreSQL.
+- Evitar a reinserção de leituras já existentes em execuções posteriores.
+- Disponibilizar consultas analíticas por meio de views SQL.
+- Visualizar os resultados em um dashboard interativo.
+
+---
+
+## 🛠️ Tecnologias utilizadas
+
+| Tecnologia | Uso no projeto |
+|---|---|
+| **Python** | Processamento e validação dos dados |
+| **Pandas e NumPy** | Manipulação e análise de dados |
+| **PostgreSQL** | Armazenamento dos registros |
+| **Docker Compose** | Execução do banco de dados em container |
+| **SQLAlchemy e psycopg2** | Conexão e operações com o PostgreSQL |
+| **Streamlit** | Aplicação do dashboard |
+| **Plotly** | Visualizações interativas |
+| **python-dotenv** | Leitura das variáveis de ambiente |
+
+---
+
+## 🏗️ Arquitetura do projeto
+
+O fluxo de processamento segue estas etapas:
+
+1. Leitura do arquivo CSV.
+2. Validação das colunas e dos valores.
+3. Conversão dos campos para os tipos esperados.
+4. Remoção de registros inválidos e duplicados.
+5. Conexão com o PostgreSQL.
+6. Carga dos registros ainda não existentes.
+7. Consulta dos dados por meio de views SQL.
+8. Apresentação dos indicadores no dashboard.
+
+```text
+CSV → Validação → Tratamento → PostgreSQL → Views SQL → Dashboard
+```
+
+---
+
+## 📁 Estrutura de diretórios
+
+```text
+pipeline-iot-temperatura/
+├── data/
+│   └── IOT-temp.csv
+├── sql/
+│   ├── create_table.sql
+│   └── views.sql
+├── src/
+│   ├── dashboard.py
+│   ├── process_data.py
+│   └── test_connection.py
+├── .env
+├── .gitignore
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
+```
+
+### Principais arquivos
+
+| Arquivo | Responsabilidade |
+|---|---|
+| `data/IOT-temp.csv` | Conjunto de dados de entrada |
+| `sql/create_table.sql` | Criação da tabela de leituras |
+| `sql/views.sql` | Criação das views analíticas |
+| `src/process_data.py` | Validação, transformação e carga dos dados |
+| `src/test_connection.py` | Verificação da conexão com o PostgreSQL |
+| `src/dashboard.py` | Dashboard interativo |
+| `docker-compose.yml` | Configuração do container PostgreSQL |
+| `requirements.txt` | Dependências Python |
+| `.env` | Configurações e credenciais locais |
+
+---
+
+## ✅ Pré-requisitos
+
+Antes de executar o projeto, tenha instalado:
+
+- Git
+- Python 3 e `venv`
+- Docker
+- Docker Compose
+
+> Os comandos deste documento consideram um ambiente **Linux**, como Ubuntu.
+
+---
+
+## ⚙️ Configuração do ambiente
+
+### 1. Clonar o repositório
+
+```bash
+git clone git@github.com:Devan-M/pipeline-iot-temperatura.git
+cd pipeline-iot-temperatura
+```
+
+Se preferir, o repositório também pode ser clonado por HTTPS.
+
+### 2. Criar o ambiente virtual
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Instalar as dependências
+
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 4. Configurar as variáveis de ambiente
+
+Crie um arquivo `.env` na raiz do projeto, utilizando valores próprios para o seu ambiente:
+
+```env
+POSTGRES_DB=nome_do_banco
+POSTGRES_USER=usuario_do_banco
+POSTGRES_PASSWORD=sua_senha
+POSTGRES_PORT=5432
+```
+
+Os valores acima são apenas exemplos. O banco, o usuário e a senha precisam ser consistentes com a configuração utilizada pelo Docker Compose.
+
+> ⚠️ **Importante:** não publique o arquivo `.env` nem inclua senhas reais no repositório. Ele deve permanecer protegido pelo `.gitignore`.
+
+---
+
+## 🚀 Execução do projeto
+
+### 1. Iniciar o PostgreSQL
+
+Na raiz do projeto, execute:
+
+```bash
+docker compose up -d
+```
+
+Confira o estado do container:
+
+```bash
+docker compose ps
+```
+
+Aguarde o PostgreSQL ficar saudável antes de executar os próximos passos.
+
+### 2. Criar a tabela de leituras
+
+O script SQL cria a tabela `temperature_readings`. No terminal Bash, carregue as variáveis do arquivo `.env` e execute o script:
+
+```bash
+set -a
+source .env
+set +a
+
+docker compose exec -T postgres \
+  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+  < sql/create_table.sql
+```
+
+> O comando pressupõe que o serviço do PostgreSQL no Compose se chama `postgres`, conforme a configuração do projeto.
+
+### 3. Processar e carregar os dados
+
+Com o ambiente virtual ativado, execute:
+
+```bash
+python src/process_data.py
+```
+
+O script lê o CSV, valida e transforma os registros e insere no PostgreSQL as leituras que ainda não existem na tabela.
+
+A carga foi implementada para permitir novas execuções sem reinserir os registros já encontrados, considerando a comparação dos campos da leitura.
+
+### 4. Criar as views analíticas
+
+```bash
+docker compose exec -T postgres \
+  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+  < sql/views.sql
+```
+
+As views podem ser recriadas a qualquer momento, pois o script utiliza `CREATE OR REPLACE VIEW`.
+
+### 5. Testar a conexão com o banco
+
+```bash
+python src/test_connection.py
+```
+
+O script verifica se a aplicação consegue estabelecer uma conexão com o PostgreSQL.
+
+### 6. Iniciar o dashboard
+
+```bash
+streamlit run src/dashboard.py --server.address 0.0.0.0
+```
+
+O Streamlit informa no terminal o endereço para acessar a aplicação. Em um servidor remoto, utilize o endereço IP ou o nome do servidor e a porta informada, considerando as regras de firewall e de rede aplicáveis.
+
+Para encerrar o dashboard, pressione `Ctrl+C` no terminal em que ele está em execução.
+
+---
+
+## 📊 Consultas analíticas
+
+O arquivo `sql/views.sql` disponibiliza três views.
+
+### 1. Temperatura média por localização
+
+**View:** `avg_temp_por_localizacao`
+
+Apresenta a temperatura média e a quantidade de leituras agrupadas pela localização do registro.
+
+```sql
+SELECT *
+FROM avg_temp_por_localizacao;
+```
+
+### 2. Quantidade de leituras por hora
+
+**View:** `leituras_por_hora`
+
+Agrupa os registros pela hora do dia, permitindo observar a distribuição temporal das leituras.
+
+```sql
+SELECT *
+FROM leituras_por_hora
+ORDER BY hora;
+```
+
+### 3. Temperaturas mínima, máxima e média por dia
+
+**View:** `temp_max_min_por_dia`
+
+Apresenta estatísticas diárias de temperatura.
+
+```sql
+SELECT *
+FROM temp_max_min_por_dia
+ORDER BY data;
+```
+
+---
+
+## 🔍 Validação dos dados
+
+O pipeline contempla verificações durante o processamento, incluindo:
+
+- Presença das colunas necessárias.
+- Conversão de data e hora para o formato esperado.
+- Conversão de temperatura para valor numérico inteiro.
+- Descarte de registros com campos obrigatórios inválidos.
+- Remoção de registros duplicados no conjunto de dados processado.
+- Verificação da conexão com o PostgreSQL antes da carga.
+
+A estratégia de carga idempotente evita reinserções em execuções sequenciais. Para cenários com execuções concorrentes, uma restrição de unicidade no banco pode ser adicionada como proteção complementar.
+
+---
+
+## 🛑 Encerramento do ambiente
+
+Para interromper e remover o container do projeto:
+
+```bash
+docker compose down
+```
+
+Os dados persistidos no volume nomeado do PostgreSQL são mantidos.
+
+> ⚠️ Para remover também o volume e os dados armazenados, seria necessário usar `docker compose down -v`. Esse comando é **destrutivo** e não deve ser executado se você quiser preservar o banco.
+
+---
+
+## 🔒 Segurança
+
+- Não versionar o arquivo `.env`.
+- Não publicar credenciais ou senhas.
+- Manter as dependências registradas em `requirements.txt`.
+- Evitar expor a porta do banco de dados a redes não confiáveis.
+- Utilizar backups adequados para preservar os dados importantes.
+
+---
+
+## 📄 Licença
+
+À ser definida!
