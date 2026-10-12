@@ -14,7 +14,7 @@ O projeto conta com um dashboard interativo desenvolvido com **Streamlit** e **P
 
 Apresenta uma visão consolidada dos dados processados, destacando os principais indicadores do conjunto de leituras. Essa visualização permite compreender rapidamente o volume de dados e as informações gerais monitoradas pelo sistema.
 
-![Gráfico 1 - Visão geral e principais indicadores](docs/images/Grafico 1.png)
+![Gráfico 1 - Visão geral e principais indicadores](docs/images/grafico-1.png)
 
 ### 2. Evolução das temperaturas ao longo do tempo
 
