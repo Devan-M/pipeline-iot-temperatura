@@ -18,6 +18,7 @@ Pipeline de dados em Python que importa, valida, trata e armazena leituras de te
 - [Configuração do ambiente](#-configuração-do-ambiente)
 - [Execução do projeto](#-execução-do-projeto)
 - [Consultas analíticas](#-consultas-analíticas)
+- [Testes automatizados](#-testes-automatizados)
 - [Validação dos dados](#-validação-dos-dados)
 - [Encerramento do ambiente](#-encerramento-do-ambiente)
 - [Segurança](#-segurança)
@@ -84,10 +85,15 @@ pipeline-iot-temperatura/
 │   ├── dashboard.py
 │   ├── process_data.py
 │   └── test_connection.py
+├── tests/
+│   ├── test_process_data.py
+│   ├── test_database_load.py
+│   └── test_database_integration.py
 ├── .env
 ├── .gitignore
 ├── docker-compose.yml
 ├── requirements.txt
+├── requirements-dev.txt
 └── README.md
 ```
 
@@ -100,6 +106,10 @@ pipeline-iot-temperatura/
 | `sql/views.sql` | Criação das views analíticas |
 | `src/process_data.py` | Validação, transformação e carga dos dados |
 | `src/test_connection.py` | Verificação da conexão com o PostgreSQL |
+| `tests/test_process_data.py` | Testes unitários do processamento dos dados |
+| `tests/test_database_load.py` | Testes da lógica de carga com mocks |
+| `tests/test_database_integration.py` | Testes de integração com PostgreSQL |
+| `requirements-dev.txt` | Dependências de desenvolvimento e testes |
 | `src/dashboard.py` | Dashboard interativo |
 | `docker-compose.yml` | Configuração do container PostgreSQL |
 | `requirements.txt` | Dependências Python |
@@ -279,6 +289,99 @@ ORDER BY data;
 
 ---
 
+## 🧪 Testes automatizados
+
+Os testes automatizados verificam o processamento dos dados, a lógica de carga
+e a integração com o PostgreSQL.
+
+### Instalar as dependências de desenvolvimento
+
+Na raiz do projeto, com o ambiente virtual ativado:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Esse arquivo instala as dependências da aplicação e o pytest.
+
+### Executar os testes unitários
+
+```bash
+python -m pytest -v tests/test_process_data.py tests/test_database_load.py
+```
+
+Esses testes verificam as transformações dos dados e a lógica de carga,
+utilizando mocks quando não é necessário acessar um banco real.
+
+### Executar a suíte completa
+
+```bash
+python -m pytest -v
+```
+
+Sem a variável `TEST_DATABASE_URL`, os testes de integração são ignorados
+automaticamente. Os testes unitários continuam sendo executados.
+
+### Executar os testes de integração com PostgreSQL
+
+Os testes de integração precisam de um banco exclusivo para testes. Não use
+o banco principal do projeto nem as credenciais do arquivo `.env`.
+
+Crie um contêiner PostgreSQL temporário, usando uma porta local dedicada:
+
+```bash
+docker run -d --name postgres-iot-test \
+  -p 127.0.0.1:55432:5432 \
+  -e POSTGRES_DB=iot_test \
+  -e POSTGRES_USER=iot_test_user \
+  -e POSTGRES_PASSWORD=test_only_password \
+  postgres:16-alpine
+```
+
+Aguarde o banco ficar pronto:
+
+```bash
+until docker exec postgres-iot-test \
+  pg_isready -U iot_test_user -d iot_test
+do
+  sleep 1
+done
+```
+
+Crie a tabela e o índice necessários aos testes:
+
+```bash
+docker exec -i postgres-iot-test \
+  psql -U iot_test_user -d iot_test < sql/create_table.sql
+```
+
+Execute os testes de integração:
+
+```bash
+TEST_DATABASE_URL='postgresql+psycopg2://iot_test_user:test_only_password@127.0.0.1:55432/iot_test' \
+  python -m pytest -v tests/test_database_integration.py
+```
+
+Para executar todos os testes, incluindo os de integração:
+
+```bash
+TEST_DATABASE_URL='postgresql+psycopg2://iot_test_user:test_only_password@127.0.0.1:55432/iot_test' \
+  python -m pytest -v
+```
+
+Os testes de integração limpam a tabela de teste antes e depois de cada caso.
+Use essas credenciais somente no contêiner descartável descrito nesta seção.
+
+Após concluir os testes, remova apenas o contêiner de teste:
+
+```bash
+docker rm -f postgres-iot-test
+```
+
+Esse comando não remove o contêiner principal `postgres-iot`.
+
+---
+
 ## 🔍 Validação dos dados
 
 O pipeline contempla verificações durante o processamento, incluindo:
@@ -290,7 +393,7 @@ O pipeline contempla verificações durante o processamento, incluindo:
 - Remoção de registros duplicados no conjunto de dados processado.
 - Verificação da conexão com o PostgreSQL antes da carga.
 
-A estratégia de carga idempotente evita reinserções em execuções sequenciais. Para cenários com execuções concorrentes, uma restrição de unicidade no banco pode ser adicionada como proteção complementar.
+A estratégia de carga idempotente evita reinserções em execuções repetidas. Uma restrição de unicidade no PostgreSQL protege a integridade dos dados, inclusive contra tentativas de inserção duplicada.
 
 ---
 
