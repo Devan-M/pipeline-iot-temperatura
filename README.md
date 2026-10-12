@@ -6,6 +6,28 @@ Pipeline de dados em Python que importa, valida, trata e armazena leituras de te
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Docker-4169E1?logo=postgresql&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)
 
+## 📊 Dashboard de Temperaturas IoT
+
+O projeto conta com um dashboard interativo desenvolvido com **Streamlit** e **Plotly**, integrado ao PostgreSQL, que permite acompanhar os principais indicadores e explorar as leituras de temperatura dos dispositivos IoT.
+
+### 1. Visão geral e principais indicadores
+
+Apresenta uma visão consolidada dos dados processados, destacando os principais indicadores do conjunto de leituras. Essa visualização permite compreender rapidamente o volume de dados e as informações gerais monitoradas pelo sistema.
+
+![Gráfico 1 - Visão geral e principais indicadores](docs/images/Grafico 1.png)
+
+### 2. Evolução das temperaturas ao longo do tempo
+
+Apresenta a evolução das temperaturas registradas ao longo do período disponível no conjunto de dados, permitindo observar variações e identificar tendências temporais.
+
+![Gráfico 2 - Evolução das temperaturas ao longo do tempo](docs/images/grafico-2.png)
+
+### 3. Temperaturas médias e distribuição por hora
+
+Reúne visualizações para analisar as temperaturas médias e a distribuição das leituras por hora do dia. Essa análise auxilia na identificação de diferenças entre as localizações monitoradas e dos horários com maior concentração de registros.
+
+![Gráfico 3 - Temperaturas médias e distribuição por hora](docs/images/grafico-3.png)
+
 ---
 
 ## 📑 Sumário
