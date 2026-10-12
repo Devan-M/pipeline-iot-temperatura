@@ -6,3 +6,12 @@ CREATE TABLE IF NOT EXISTS temperature_readings (
     temperature INTEGER NOT NULL,
     location VARCHAR(10) NOT NULL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_temperature_readings_business_key
+ON temperature_readings (
+    reading_id,
+    room_id,
+    reading_timestamp,
+    temperature,
+    location
+);

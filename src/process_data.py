@@ -157,22 +157,21 @@ def load_into_database(df: pd.DataFrame, engine) -> int:
                     location
                 )
                 SELECT DISTINCT
-                    stage.reading_id,
-                    stage.room_id,
-                    stage.reading_timestamp,
-                    stage.temperature,
-                    stage.location
-                FROM temperature_readings_stage AS stage
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM temperature_readings AS existing
-                    WHERE existing.reading_id = stage.reading_id
-                      AND existing.room_id = stage.room_id
-                      AND existing.reading_timestamp =
-                          stage.reading_timestamp
-                      AND existing.temperature = stage.temperature
-                      AND existing.location = stage.location
+                    reading_id,
+                    room_id,
+                    reading_timestamp,
+                    temperature,
+                    location
+                FROM temperature_readings_stage
+                WHERE TRUE
+                ON CONFLICT (
+                    reading_id,
+                    room_id,
+                    reading_timestamp,
+                    temperature,
+                    location
                 )
+                DO NOTHING
                 """
             )
         )
