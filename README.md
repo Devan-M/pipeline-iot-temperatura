@@ -174,7 +174,7 @@ source .venv/bin/activate
 
 ```bash
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ### 4. Configurar as variáveis de ambiente
@@ -321,7 +321,7 @@ e a integração com o PostgreSQL.
 Na raiz do projeto, com o ambiente virtual ativado:
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -r rements-dev.txt
 ```
 
 Esse arquivo instala as dependências da aplicação e o pytest.
@@ -437,7 +437,7 @@ Os dados persistidos no volume nomeado do PostgreSQL são mantidos.
 
 - Não versionar o arquivo `.env`.
 - Não publicar credenciais ou senhas.
-- Manter as dependências registradas em `requirements.txt`.
+- Manter as dependências registradas em `requirements-dev.txt`.
 - Evitar expor a porta do banco de dados a redes não confiáveis.
 - Utilizar backups adequados para preservar os dados importantes.
 
