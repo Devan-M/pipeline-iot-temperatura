@@ -244,7 +244,7 @@ A carga foi implementada para permitir novas execuções sem reinserir os regist
 
 ```bash
 docker compose exec -T postgres \
-  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+  psql -U iot_user -d iot_database \
   < sql/views.sql
 ```
 
